@@ -1,19 +1,39 @@
 package es.sakhi.osama.dozeoff;
 
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.microsoft.band.BandClient;
+import com.microsoft.band.BandClientManager;
+import com.microsoft.band.BandException;
+import com.microsoft.band.BandIOException;
+import com.microsoft.band.BandInfo;
+import com.microsoft.band.BandPendingResult;
+import com.microsoft.band.ConnectionState;
+import com.microsoft.band.UserConsent;
+import com.microsoft.band.sensors.BandHeartRateEvent;
+import com.microsoft.band.sensors.BandHeartRateEventListener;
+import com.microsoft.band.sensors.HeartRateConsentListener;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements HeartRateConsentListener {
+
+    private BandHeartRateEventListener heartRateListener;
+    private BandClient bandClient;
+    private BandPendingResult<ConnectionState> pendingResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ListenerService.startListener(this);
+
+        connectBand();
     }
 
     @Override
@@ -36,5 +56,97 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void connectBand() {
+
+        BandInfo[] pairedBands = BandClientManager.getInstance().getPairedBands();
+        bandClient = BandClientManager.getInstance().create(this, pairedBands[0]);
+
+//        Note: the BandPendingResult.await() method must be called from a
+//        background thread. An exception will be thrown if called from the UI
+//        thread.
+        pendingResult = bandClient.connect();
+
+        AwaitTask task = new AwaitTask();
+        task.execute();
+
+    }
+
+    public void setBandRetrievalInterval() {}
+
+
+    @Override
+    public void userAccepted(boolean accepted) {
+//        Get the thing
+        if (accepted) {
+            heartRateListener = new BandHeartRateEventListener() {
+
+                @Override
+                public void onBandHeartRateChanged(BandHeartRateEvent event) {
+                    // do work on heart rate changed (i.e. update UI)
+                    int rate = event.getHeartRate();
+                    Log.d("HEART RATE", "" + rate);
+                }
+            };
+
+            try {
+                // register the listener
+                bandClient.getSensorManager().registerHeartRateEventListener(heartRateListener);
+
+            } catch (BandIOException ex) {
+                // handle BandException
+                ex.printStackTrace();
+
+            } catch (BandException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+    }
+
+    private class AwaitTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+
+                ConnectionState state = pendingResult.await();
+
+                if (state == ConnectionState.CONNECTED) {
+//                do work on success
+
+                    // check current user heart rate consent
+                    if (bandClient.getSensorManager().getCurrentHeartRateConsent() !=
+                            UserConsent.GRANTED) {
+
+                        // user has not consented, request it
+                        // the calling class is both an Activity and implements
+                        // HeartRateConsentListener
+                        bandClient.getSensorManager().requestHeartRateConsent(
+                                MainActivity.this,
+                                MainActivity.this);
+                    } else {
+                        Log.d("Consent", "Already Granted");
+                        userAccepted(true);
+                    }
+
+                } else {
+//                do work on failure
+                    Log.e("STATE", "ConnectionState failure");
+                }
+            } catch(InterruptedException ex) {
+//            handle InterruptedException
+                ex.printStackTrace();
+
+            } catch(BandException ex) {
+//            handle BandException
+                ex.printStackTrace();
+            }
+
+            return null;
+
+        }
     }
 }

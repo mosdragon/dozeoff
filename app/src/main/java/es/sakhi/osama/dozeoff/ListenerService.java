@@ -4,6 +4,19 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.content.Context;
 
+import com.microsoft.band.BandClient;
+import com.microsoft.band.BandClientManager;
+import com.microsoft.band.BandException;
+import com.microsoft.band.BandInfo;
+import com.microsoft.band.BandIOException;
+import com.microsoft.band.BandPendingResult;
+import com.microsoft.band.ConnectionState;
+
+import com.microsoft.band.UserConsent;
+import com.microsoft.band.sensors.BandHeartRateEvent;
+import com.microsoft.band.sensors.BandHeartRateEventListener;
+import com.microsoft.band.sensors.HeartRateConsentListener;
+
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
@@ -34,6 +47,10 @@ public class ListenerService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
 
+//        if (android.os.Debug.isDebuggerConnected()) {
+//            android.os.Debug.waitForDebugger();
+//        };
+
     }
 
     public void openNav() {}
@@ -43,10 +60,6 @@ public class ListenerService extends IntentService {
     public void findGasStation() {}
 
     public void blareAlarm() {}
-
-    public void connectBand() {}
-
-    public void setBandRetrievalInterval() {}
 
 
 }
