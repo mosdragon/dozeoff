@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.microsoft.band.BandClient;
 import com.microsoft.band.BandClientManager;
@@ -41,7 +42,10 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     private static final String CONNECT = "Connect";
     private static final String DISCONNECT = "Disconnect";
 
-    Button bandConnection;
+    private Button bandConnection;
+    private TextView heartRateView;
+    private int heartRate;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +70,9 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
             }
         });
         bandConnection.setText(CONNECT);
+        heartRateView = (TextView) findViewById(R.id.heartRate);
+        heartRate = 80;
+        heartRateView.setText("" + heartRate);
     }
 
     @Override
@@ -130,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                     // do work on heart rate changed (i.e. update UI)
                     int rate = event.getHeartRate();
                     Log.d(TAG, "HEART RATE: " + rate);
+                    heartRateView.setText("" + heartRate);
                 }
             };
 

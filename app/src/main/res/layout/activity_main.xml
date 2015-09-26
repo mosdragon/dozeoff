@@ -17,4 +17,14 @@
         android:textSize="22dp"
         />
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:textSize="50dp"
+        android:text="80"
+        android:id="@+id/heartRate"
+        />
+
 </LinearLayout>
