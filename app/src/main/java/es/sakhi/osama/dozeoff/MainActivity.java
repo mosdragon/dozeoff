@@ -1,11 +1,11 @@
 package es.sakhi.osama.dozeoff;
 
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,10 +25,6 @@ import com.microsoft.band.sensors.BandHeartRateEvent;
 import com.microsoft.band.sensors.BandHeartRateEventListener;
 import com.microsoft.band.sensors.HeartRateConsentListener;
 
-import butterknife.Bind;
-import butterknife.OnCheckedChanged;
-import butterknife.OnClick;
-
 
 public class MainActivity extends AppCompatActivity implements HeartRateConsentListener {
 
@@ -46,6 +42,12 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     private TextView heartRateView;
     private int heartRate;
 
+    private MediaPlayer mp;
+    private AudioManager audioManager;
+    private int originalVol;
+
+    private BandPendingResult<Void> disconnectResult;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,18 +63,41 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                 if (connected) {
                     disconnectBand();
 
+                    if (mp != null && mp.isPlaying()) {
+                        mp.stop();
+                    }
+                    if (audioManager != null) {
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                                originalVol,
+                                AudioManager.FLAG_SHOW_UI);
+                    }
                 } else {
                     connectBand();
+//                    blareAlarm();
 
                 }
                 connected = !connected;
                 bandConnection.setText(connected ? DISCONNECT : CONNECT);
+
+
             }
         });
         bandConnection.setText(CONNECT);
+
+
         heartRateView = (TextView) findViewById(R.id.heartRate);
         heartRate = 80;
         heartRateView.setText("" + heartRate);
+
+
+//        Button alarmTest = (Button) findViewById(R.id.blareAlarmTest);
+//        alarmTest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//            }
+//        });
+
     }
 
     @Override
@@ -98,7 +123,11 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     }
 
     private void disconnectBand() {
-        bandClient.disconnect();
+
+        disconnectResult = bandClient.disconnect();
+        DisconnectAwaitTask task = new DisconnectAwaitTask();
+        task.execute();
+
         Log.d(TAG, "disconnectBand");
     }
 
@@ -111,10 +140,11 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 //        Note: the BandPendingResult.await() method must be called from a
 //        background thread. An exception will be thrown if called from the UI
 //        thread.
+        bandClient.disconnect();
         pendingResult = bandClient.connect();
 
 
-        AwaitTask task = new AwaitTask();
+        ConnectAwaitTask task = new ConnectAwaitTask();
         task.execute();
 
     }
@@ -135,9 +165,15 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                 @Override
                 public void onBandHeartRateChanged(BandHeartRateEvent event) {
                     // do work on heart rate changed (i.e. update UI)
-                    int rate = event.getHeartRate();
-                    Log.d(TAG, "HEART RATE: " + rate);
-                    heartRateView.setText("" + heartRate);
+                    heartRate = event.getHeartRate();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            heartRateView.setText("" + heartRate);
+
+                        }
+                    });
+                    Log.d(TAG, "HEART RATE: " + heartRate);
                 }
             };
 
@@ -157,39 +193,44 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     }
 
+    public void blareAlarm() {
+        increaseVolume();
+        //set up MediaPlayer
+        mp = MediaPlayer.create(this, R.raw.alarm);
+        mp.start();
+
+
+//        try {
+//            mp.setDataSource(path+ File.separator+fileName);
+//            mp.prepare();
+//            mp.start();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    private void increaseVolume() {
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int original = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                AudioManager.FLAG_SHOW_UI);
+    }
+
     /**
      * Used as a seperate thread to await the connection state of the band
      */
-    private class AwaitTask extends AsyncTask<Void, Void, Void> {
+    private class ConnectAwaitTask extends AsyncTask<Void, Void, Void> {
+
+        private ConnectionState state;
 
         @Override
         protected Void doInBackground(Void... params) {
             try {
 
-                ConnectionState state = pendingResult.await();
+                state = pendingResult.await();
 
-                if (state == ConnectionState.CONNECTED) {
-//                do work on success
 
-                    // check current user heart rate consent
-                    if (bandClient.getSensorManager().getCurrentHeartRateConsent() !=
-                            UserConsent.GRANTED) {
-
-                        // user has not consented, request it
-                        // the calling class is both an Activity and implements
-                        // HeartRateConsentListener
-                        bandClient.getSensorManager().requestHeartRateConsent(
-                                MainActivity.this,
-                                MainActivity.this);
-                    } else {
-                        Log.d(TAG, " Consent Already Granted");
-                        userAccepted(true);
-                    }
-
-                } else {
-//                do work on failure
-                    Log.e(TAG, "ConnectionState failure");
-                }
             } catch(InterruptedException ex) {
 //            handle InterruptedException
                 ex.printStackTrace();
@@ -197,6 +238,53 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
             } catch(BandException ex) {
 //            handle BandException
                 ex.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            if (state == ConnectionState.CONNECTED) {
+//                do work on success
+
+                // check current user heart rate consent
+                if (bandClient.getSensorManager().getCurrentHeartRateConsent() !=
+                        UserConsent.GRANTED) {
+
+                    // user has not consented, request it
+                    // the calling class is both an Activity and implements
+                    // HeartRateConsentListener
+                    bandClient.getSensorManager().requestHeartRateConsent(
+                            MainActivity.this,
+                            MainActivity.this);
+                } else {
+                    Log.d(TAG, " Consent Already Granted");
+                    userAccepted(true);
+                }
+
+            } else {
+//                do work on failure
+                Log.e(TAG, "ConnectionState failure");
+            }
+        }
+    }
+
+    /**
+     * Used as a seperate thread to await the connection state of the band
+     */
+    private class DisconnectAwaitTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try {
+                disconnectResult.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BandException e) {
+                e.printStackTrace();
             }
 
             return null;
