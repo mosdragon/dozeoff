@@ -1,12 +1,16 @@
 package es.sakhi.osama.dozeoff;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 import com.microsoft.band.BandClient;
 import com.microsoft.band.BandClientManager;
@@ -20,12 +24,24 @@ import com.microsoft.band.sensors.BandHeartRateEvent;
 import com.microsoft.band.sensors.BandHeartRateEventListener;
 import com.microsoft.band.sensors.HeartRateConsentListener;
 
+import butterknife.Bind;
+import butterknife.OnCheckedChanged;
+import butterknife.OnClick;
+
 
 public class MainActivity extends AppCompatActivity implements HeartRateConsentListener {
+
+    private static final String TAG = "MainActivity";
 
     private BandHeartRateEventListener heartRateListener;
     private BandClient bandClient;
     private BandPendingResult<ConnectionState> pendingResult;
+    private boolean connected;
+
+    private static final String CONNECT = "Connect";
+    private static final String DISCONNECT = "Disconnect";
+
+    Button bandConnection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +49,23 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         setContentView(R.layout.activity_main);
         ListenerService.startListener(this);
 
-        connectBand();
+        connected = false;
+        bandConnection = (Button) findViewById(R.id.bandConnection);
+        bandConnection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (connected) {
+                    disconnectBand();
+
+                } else {
+                    connectBand();
+
+                }
+                connected = !connected;
+                bandConnection.setText(connected ? DISCONNECT : CONNECT);
+            }
+        });
+        bandConnection.setText(CONNECT);
     }
 
     @Override
@@ -58,7 +90,13 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         return super.onOptionsItemSelected(item);
     }
 
-    public void connectBand() {
+    private void disconnectBand() {
+        bandClient.disconnect();
+        Log.d(TAG, "disconnectBand");
+    }
+
+
+    private void connectBand() {
 
         BandInfo[] pairedBands = BandClientManager.getInstance().getPairedBands();
         bandClient = BandClientManager.getInstance().create(this, pairedBands[0]);
@@ -68,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 //        thread.
         pendingResult = bandClient.connect();
 
+
         AwaitTask task = new AwaitTask();
         task.execute();
 
@@ -76,6 +115,10 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     public void setBandRetrievalInterval() {}
 
 
+    /**
+     *
+     * @param accepted, whether or not app has consent to get heart rate data
+     */
     @Override
     public void userAccepted(boolean accepted) {
 //        Get the thing
@@ -86,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                 public void onBandHeartRateChanged(BandHeartRateEvent event) {
                     // do work on heart rate changed (i.e. update UI)
                     int rate = event.getHeartRate();
-                    Log.d("HEART RATE", "" + rate);
+                    Log.d(TAG, "HEART RATE: " + rate);
                 }
             };
 
@@ -106,6 +149,9 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     }
 
+    /**
+     * Used as a seperate thread to await the connection state of the band
+     */
     private class AwaitTask extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -128,13 +174,13 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                                 MainActivity.this,
                                 MainActivity.this);
                     } else {
-                        Log.d("Consent", "Already Granted");
+                        Log.d(TAG, " Consent Already Granted");
                         userAccepted(true);
                     }
 
                 } else {
 //                do work on failure
-                    Log.e("STATE", "ConnectionState failure");
+                    Log.e(TAG, "ConnectionState failure");
                 }
             } catch(InterruptedException ex) {
 //            handle InterruptedException

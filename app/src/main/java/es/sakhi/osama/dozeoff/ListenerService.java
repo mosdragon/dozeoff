@@ -26,6 +26,8 @@ import com.microsoft.band.sensors.HeartRateConsentListener;
  */
 public class ListenerService extends IntentService {
 
+    private static final String TAG = "ListenerService";
+
 
 
     /**
