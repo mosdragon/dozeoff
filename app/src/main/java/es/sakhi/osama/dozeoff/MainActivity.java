@@ -66,6 +66,15 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
             }
         });
         bandConnection.setText(CONNECT);
+
+
+        Button alarmTest = (Button) findViewById(R.id.blareAlarmTest);
+        alarmTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
     }
 
     @Override

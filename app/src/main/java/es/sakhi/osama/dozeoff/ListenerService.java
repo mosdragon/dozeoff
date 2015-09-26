@@ -3,19 +3,8 @@ package es.sakhi.osama.dozeoff;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.Context;
-
-import com.microsoft.band.BandClient;
-import com.microsoft.band.BandClientManager;
-import com.microsoft.band.BandException;
-import com.microsoft.band.BandInfo;
-import com.microsoft.band.BandIOException;
-import com.microsoft.band.BandPendingResult;
-import com.microsoft.band.ConnectionState;
-
-import com.microsoft.band.UserConsent;
-import com.microsoft.band.sensors.BandHeartRateEvent;
-import com.microsoft.band.sensors.BandHeartRateEventListener;
-import com.microsoft.band.sensors.HeartRateConsentListener;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -61,7 +50,27 @@ public class ListenerService extends IntentService {
 
     public void findGasStation() {}
 
-    public void blareAlarm() {}
+    public void blareAlarm() {
+        increaseVolume();
+        //set up MediaPlayer
+        MediaPlayer mp = MediaPlayer.create(this, R.raw.alarmsound);
+        mp.start();
+
+//        try {
+//            mp.setDataSource(path+ File.separator+fileName);
+//            mp.prepare();
+//            mp.start();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    private void increaseVolume() {
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                AudioManager.FLAG_SHOW_UI);
+    }
 
 
 }
