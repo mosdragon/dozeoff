@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#00796b"
+    android:paddingRight="0px"
+    android:paddingTop="0px">
+
+    <ImageView
+        android:layout_width="395dp"
+        android:layout_height="360dp"
+        android:id="@+id/HeartRateView"
+        android:src="@drawable/heartrate"
+        android:adjustViewBounds="true"
+        android:paddingRight="20dp" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Start Driving"
+        android:id="@+id/button"
+        android:textSize="40dp"
+        android:background="#FFC107"
+        android:onClick="openMain"/>
+</LinearLayout>

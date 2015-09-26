@@ -21,6 +21,11 @@
             android:name=".ListenerService"
             android:exported="false" >
         </service>
+
+        <activity
+            android:name=".Monitor_heart"
+            android:label="@string/title_activity_monitor_heart" >
+        </activity>
     </application>
 
 </manifest>

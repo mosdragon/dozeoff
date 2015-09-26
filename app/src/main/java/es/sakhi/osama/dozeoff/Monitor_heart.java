@@ -1,26 +1,25 @@
 package es.sakhi.osama.dozeoff;
 
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-
-public class MainActivity extends AppCompatActivity {
+public class Monitor_heart extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.splash);
+        setContentView(R.layout.activity_main);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_monitor_heart, menu);
         return true;
     }
 
@@ -39,8 +38,23 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void openMain(View view) {
-        Intent i = new Intent(this, Monitor_heart.class);
-        startActivity(i);
+    public void sendImpIntGas(View view) {
+
+        Uri anyAddress = Uri.parse("google.navigation:q=" + Uri.encode("Gas Station") + "&mode=d");
+        Intent mapI = new Intent(Intent.ACTION_VIEW, anyAddress);
+        mapI.setPackage("com.google.android.apps.maps");
+        if (mapI.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapI);
+        }
+    }
+
+    public void sendImpIntCoffee(View view) {
+
+        Uri anyAddress = Uri.parse("google.navigation:q=" + Uri.encode("Coffee") + "&mode=d");
+        Intent mapI = new Intent(Intent.ACTION_VIEW, anyAddress);
+        mapI.setPackage("com.google.android.apps.maps");
+        if (mapI.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapI);
+        }
     }
 }
