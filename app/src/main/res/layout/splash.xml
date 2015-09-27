@@ -17,8 +17,8 @@
         android:id="@+id/heart_rt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/def_Heart_String"
-        android:textSize="40dp"
+        android:text="[Rate]"
+        android:textSize="60dp"
         android:layout_gravity="center"
         android:onClick="openGoogleService"/>
     <Button

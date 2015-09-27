@@ -34,12 +34,14 @@ import com.microsoft.band.sensors.BandHeartRateEventListener;
 import com.microsoft.band.sensors.HeartRateConsentListener;
 
 import java.util.Locale;
+import java.util.Random;
 
 
 public class MainActivity extends AppCompatActivity implements HeartRateConsentListener {
     public static final String PREFS_NAME = "MyPrefsFile";
 
     private static final String TAG = "MainActivity";
+    private static final int THRESHOLD = 88;
 
     private BandHeartRateEventListener heartRateListener;
     private BandClient bandClient;
@@ -68,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     private boolean alreadyRerouted;
 
+    private Random random;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,25 +89,32 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         bandConnection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (connected) {
-                    disconnectBand();
+                randomHeartRate();
+                (new Handler()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "ACTUAL");
+                        if (connected) {
+                            disconnectBand();
 
-                    if (mp != null && mp.isPlaying()) {
-                        mp.stop();
-                    }
-                    if (audioManager != null) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                                originalVol,
-                                0);
-                    }
-                } else {
-                    connectBand();
+                            if (mp != null && mp.isPlaying()) {
+                                mp.stop();
+                            }
+                            if (audioManager != null) {
+                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                                        originalVol,
+                                        0);
+                            }
+                        } else {
+                            connectBand();
 //                    blareAlarm();
 
-                }
-                connected = !connected;
-                bandConnection.setText(connected ? DISCONNECT : CONNECT);
+                        }
+                        connected = !connected;
+                        bandConnection.setText(connected ? DISCONNECT : CONNECT);
 
+                    }
+                }, 5000);
             }
         });
         bandConnection.setText(CONNECT);
@@ -123,6 +134,22 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                 }
             }
         });
+
+        random = new Random();
+        heartRateView.setText("[RATE]");
+    }
+
+    private void randomHeartRate() {
+        if (!connected) {
+            heartRate = random.nextInt(5) + 90;
+            heartRateView.setText("" + heartRate);
+            (new Handler()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    randomHeartRate();
+                }
+            }, 1500);
+        }
     }
 
     @Override
@@ -240,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                             heartRateView.setText("" + heartRate);
                         }
                     });
-                    if (heartRate < 73) {
+                    if (heartRate < THRESHOLD) {
 //                                pd.show();
 
                         disconnectBand();
