@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.speech.tts.TextToSpeech;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -20,7 +19,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.microsoft.band.BandClient;
@@ -68,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     private ProgressDialog pd;
 
+    private boolean alreadyRerouted;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         String shopName = prefs.getString("shopMode", "");
         System.out.println("#### " + shopName);
         if (shopName.equals("")) {
-            Intent intent = new Intent(this, Settings.class);
+            Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
         }
 
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                     if (audioManager != null) {
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
                                 originalVol,
-                                AudioManager.FLAG_SHOW_UI);
+                                0);
                     }
                 } else {
                     connectBand();
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
-            Intent goToSettings = new Intent(this, Settings.class);
+            Intent goToSettings = new Intent(this, SettingsActivity.class);
             startActivity(goToSettings);
             return true;
         }
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     public void openGoogleService(View view) {
         //Intent intent = getIntent();
-        //String myShop = intent.getStringExtra(Settings.WHAT_SHOP);
+        //String myShop = intent.getStringExtra(SettingsActivity.WHAT_SHOP);
         SharedPreferences prefs = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String myShop = prefs.getString("shopMode", "gas station");
         Uri anyAddress = Uri.parse("google.navigation:q=" + Uri.encode(myShop) + "&mode=d");
@@ -179,7 +179,10 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         DisconnectAwaitTask task = new DisconnectAwaitTask();
         task.execute();
 
+        alreadyRerouted = false;
+
         Log.d(TAG, "disconnectBand");
+
     }
 
 
@@ -193,6 +196,8 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 //        thread.
         bandClient.disconnect();
         pendingResult = bandClient.connect();
+
+        alreadyRerouted = false;
 
 
         ConnectAwaitTask task = new ConnectAwaitTask();
@@ -233,35 +238,29 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                         @Override
                         public void run() {
                             heartRateView.setText("" + heartRate);
-                            if (heartRate < 73) {
-//                                pd.show();
-
-                                disconnectBand();
-                                if (mp == null || !mp.isPlaying()) {
-                                    blareAlarm();
-                                }
-                                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                                    @Override
-                                    public void onCompletion(MediaPlayer mediaPlayer) {
-                                        speakSleepInstructions();
-                                    }
-                                });
-
-//                                blareAlarm();
-                            } else {
-//                                pd.hide();
-                                if (mp != null && mp.isPlaying()) {
-                                    mp.stop();
-                                }
-                                if (audioManager != null) {
-                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                                            originalVol,
-                                            AudioManager.FLAG_SHOW_UI);
-                                }
-                            }
-
                         }
                     });
+                    if (heartRate < 73) {
+//                                pd.show();
+
+                        disconnectBand();
+                        if ((mp == null || !mp.isPlaying()) && !alreadyRerouted) {
+                            blareAlarm();
+                            alreadyRerouted = true;
+                        }
+
+//                                blareAlarm();
+                    } else {
+//                                pd.hide();
+//                        if (mp != null && mp.isPlaying()) {
+//                            mp.stop();
+//                        }
+//                        if (audioManager != null) {
+//                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+//                                    originalVol,
+//                                    AudioManager.FLAG_SHOW_UI);
+//                        }
+                    }
                     Log.d(TAG, "HEART RATE: " + heartRate);
                 }
             };
@@ -300,13 +299,24 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         t1.speak(sleepInstructions, TextToSpeech.QUEUE_FLUSH, null);
         //look into a wait until tts ends method before calling reroute
         reroute();
+        disconnectBand();
+        connected = !connected;
+        bandConnection.setText(connected ? DISCONNECT : CONNECT);
     }
 
     public void reroute() {
         //this will start the maps
         //idk what the exact string is so for now
         //our default is a truck stop
-        sendImpIntMaps("gas station");
+//        sendImpIntMaps("gas station");
+        SharedPreferences prefs = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String myShop = prefs.getString("shopMode", "coffee");
+        Uri anyAddress = Uri.parse("google.navigation:q=" + Uri.encode(myShop) + "&mode=d");
+        Intent mapI = new Intent(Intent.ACTION_VIEW, anyAddress);
+        mapI.setPackage("com.google.android.apps.maps");
+        if (mapI.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapI);
+        }
 
     }
 
@@ -324,6 +334,16 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         increaseVolume();
         //set up MediaPlayer
         mp = MediaPlayer.create(this, R.raw.alarm);
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+
+                speakSleepInstructions();
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                        originalVol,
+                        0);
+            }
+        });
         mp.start();
 
 
@@ -341,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
         int original = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
                 audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-                AudioManager.FLAG_SHOW_UI);
+                0);
     }
 
     /**
