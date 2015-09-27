@@ -170,6 +170,11 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     private void disconnectBand() {
 
+        try {
+            bandClient.getSensorManager().unregisterHeartRateEventListeners();
+        } catch (BandIOException e) {
+            e.printStackTrace();
+        }
         disconnectResult = bandClient.disconnect();
         DisconnectAwaitTask task = new DisconnectAwaitTask();
         task.execute();
