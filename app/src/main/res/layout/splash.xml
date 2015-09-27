@@ -13,7 +13,14 @@
         android:src="@drawable/heartrate"
         android:adjustViewBounds="true"
         android:paddingRight="20dp" />
-
+    <TextView
+        android:id="@+id/heart_rt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/def_Heart_String"
+        android:textSize="40dp"
+        android:layout_gravity="center"
+        android:onClick="openGoogleService"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -21,5 +28,5 @@
         android:id="@+id/button"
         android:textSize="40dp"
         android:background="#FFC107"
-        android:onClick="openMain"/>
+        android:onClick="toggleDrive"/>
 </LinearLayout>

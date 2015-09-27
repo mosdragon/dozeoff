@@ -26,6 +26,10 @@
             android:name=".Monitor_heart"
             android:label="@string/title_activity_monitor_heart" >
         </activity>
+        <activity
+            android:name=".Settings"
+            android:label="@string/title_activity_settings" >
+        </activity>
     </application>
 
 </manifest>

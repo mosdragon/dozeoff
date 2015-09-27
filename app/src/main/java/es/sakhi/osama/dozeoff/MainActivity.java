@@ -1,12 +1,18 @@
 package es.sakhi.osama.dozeoff;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -15,6 +21,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash);
+        String FILENAME = "isFirstTime";
+        try {
+            FileInputStream fis = openFileInput(FILENAME);
+
+        } catch (FileNotFoundException e) {
+            Intent intent = new Intent(this, Settings.class);
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -26,21 +40,35 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent goToSettings = new Intent(this, Settings.class);
+            startActivity(goToSettings);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void openMain(View view) {
-        Intent i = new Intent(this, Monitor_heart.class);
-        startActivity(i);
+    public void toggleDrive(View view) {
+        Button start = (Button) findViewById(R.id.button);
+        if (start.getText() == "START DRIVING") {
+            start.setText("STOP DRIVING");
+        } else {
+            start.setText("START DRIVING");
+        }
+    }
+
+    public void openGoogleService(View view) {
+        Intent intent = getIntent();
+        String myShop = intent.getStringExtra(Settings.WHAT_SHOP);
+        Uri anyAddress = Uri.parse("google.navigation:q=" + Uri.encode(myShop) + "&mode=d");
+        Intent mapI = new Intent(Intent.ACTION_VIEW, anyAddress);
+        mapI.setPackage("com.google.android.apps.maps");
+        if (mapI.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapI);
+        }
+
     }
 }
