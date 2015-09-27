@@ -56,6 +56,7 @@ public class SettingsActivity extends AppCompatActivity {
         editor.commit();
         System.out.println("****** " + prefs.getString("shopMode", "DID NOT WORK"));
         startActivity(intent);
+        finish();
     }
 
     public void sendTruckStopIntent(View view) {
@@ -68,6 +69,7 @@ public class SettingsActivity extends AppCompatActivity {
         editor.commit();
 //        prefs.edit().commit();
         startActivity(intent);
+        finish();
     }
 
     public void sendCoffeeIntent(View view) {
@@ -80,5 +82,6 @@ public class SettingsActivity extends AppCompatActivity {
         editor.commit();
 //        prefs.edit().commit();
         startActivity(intent);
+        finish();
     }
 }

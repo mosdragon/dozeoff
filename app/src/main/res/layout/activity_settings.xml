@@ -14,13 +14,11 @@
 
     <TextView android:text="\nEver have trouble staying awake on a long, monotonous drive? We&apos;re here to help you - simply pair your Microsoft Band with your phone and we&apos;ll track your heart beat for you, making sure you don&apos;t fall asleep behind the wheel! If your heart beat drops below the dozing off threshold, we&apos;ll play an alarm to wake you up and route you to the nearest location of your choice." android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/"
         android:textColor="#000101" />
 
     <TextView android:text="\nChoose below which type of location you would prefer to be routed to in the event that you doze off:\n\n" android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#000101"
-        android:id="@+id/" />
+        android:textColor="#000101" />
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
