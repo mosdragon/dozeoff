@@ -1,10 +1,12 @@
 package es.sakhi.osama.dozeoff;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -48,12 +50,14 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     private BandPendingResult<Void> disconnectResult;
 
+    private ProgressDialog pd;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ListenerService.startListener(this);
+//        ListenerService.startListener(this);
 
         connected = false;
         bandConnection = (Button) findViewById(R.id.bandConnection);
@@ -166,20 +170,50 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                 public void onBandHeartRateChanged(BandHeartRateEvent event) {
                     // do work on heart rate changed (i.e. update UI)
                     heartRate = event.getHeartRate();
+
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             heartRateView.setText("" + heartRate);
+                            if (heartRate < 80) {
+                                pd.show();
+                                if (mp == null || !mp.isPlaying()) {
+//                                    blareAlarm();
+                                }
+//                                blareAlarm();
+                            } else {
+                                pd.hide();
+                                if (mp != null && mp.isPlaying()) {
+                                    mp.stop();
+                                }
+                                if (audioManager != null) {
+                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                                            originalVol,
+                                            AudioManager.FLAG_SHOW_UI);
+                                }
+                            }
 
                         }
                     });
                     Log.d(TAG, "HEART RATE: " + heartRate);
                 }
             };
+//            ListenerService.startListener(this, bandClient, heartRateListener);
 
             try {
                 // register the listener
+
+                pd = new ProgressDialog(this);
+                pd.setTitle("BE ALARMED");
                 bandClient.getSensorManager().registerHeartRateEventListener(heartRateListener);
+                (new Handler()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        blareAlarm();
+
+                    }
+                }, 4000);
+
 
             } catch (BandIOException ex) {
                 // handle BandException
@@ -212,9 +246,9 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     private void increaseVolume() {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int original = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-                AudioManager.FLAG_SHOW_UI);
+//        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+//                audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+//                AudioManager.FLAG_SHOW_UI);
     }
 
     /**
