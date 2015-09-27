@@ -10,6 +10,11 @@
     <TextView android:text="@string/instructions" android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <TextView android:text="\nEver have trouble staying awak on a long, monotonous drive? We're here to help you - simply pair your Microsoft Band with your phone and we'll track your heart beat for you, making sure you don't fall asleep behind the wheel! If your heart beat drops below the dozing off threshold, we'll play an alarm to wake you up and route you to the nearest location of your choice." android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView android:text="\nChoose below which type of location you would prefer to be routed to in the event that you doze off:\n\n" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -23,5 +28,12 @@
         android:id="@+id/coffee_shop"
         android:text="@string/coffee_shop_string"
         android:onClick="sendCoffeeIntent"/>
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/truck_stop"
+        android:text="@string/truck_stop_string"
+        android:onClick="sendTruckStopIntent"/>
 
 </LinearLayout>

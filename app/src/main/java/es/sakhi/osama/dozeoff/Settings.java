@@ -58,6 +58,18 @@ public class Settings extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void sendTruckStopIntent(View view) {
+        Intent intent = new Intent(this, MainActivity.class);
+        //intent.putExtra(WHAT_SHOP, "truckstop");
+        SharedPreferences prefs = this.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("shopMode", "truck stop");
+        editor.commit();
+//        prefs.edit().commit();
+        startActivity(intent);
+    }
+
     public void sendCoffeeIntent(View view) {
         Intent intent = new Intent(this, MainActivity.class);
         //intent.putExtra(WHAT_SHOP, "coffee");

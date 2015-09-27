@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +35,8 @@ import com.microsoft.band.sensors.BandHeartRateEvent;
 import com.microsoft.band.sensors.BandHeartRateEventListener;
 import com.microsoft.band.sensors.HeartRateConsentListener;
 
+import java.util.Locale;
+
 
 public class MainActivity extends AppCompatActivity implements HeartRateConsentListener {
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -45,12 +48,17 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     private BandPendingResult<ConnectionState> pendingResult;
     private boolean connected;
 
-    private static final String CONNECT = "Connect";
-    private static final String DISCONNECT = "Disconnect";
+    private static final String CONNECT = "Start Driving";
+    private static final String DISCONNECT = "Stop Driving";
 
     private Button bandConnection;
     private TextView heartRateView;
     private int heartRate;
+
+    private boolean isFirst = true;
+    private int restingHeartRate = 75;
+    private int dozingOff = 65;
+    private TextToSpeech t1;
 
     private MediaPlayer mp;
     private AudioManager audioManager;
@@ -96,15 +104,25 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                 connected = !connected;
                 bandConnection.setText(connected ? DISCONNECT : CONNECT);
 
-
             }
         });
         bandConnection.setText(CONNECT);
 
 
         heartRateView = (TextView) findViewById(R.id.heart_rt);
-        heartRate = 80;
+        heartRate = restingHeartRate;
         heartRateView.setText("" + heartRate);
+
+
+        //instantiate the texttospeech
+        t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    t1.setLanguage(Locale.US);
+                }
+            }
+        });
     }
 
     @Override
@@ -186,6 +204,7 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
      */
     //@Override
     public void userAccepted(boolean accepted) {
+        //is this the first heart rate
 //        Get the thing
         if (accepted) {
             heartRateListener = new BandHeartRateEventListener() {
@@ -194,19 +213,38 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
                 public void onBandHeartRateChanged(BandHeartRateEvent event) {
                     // do work on heart rate changed (i.e. update UI)
                     heartRate = event.getHeartRate();
+                    if(isFirst) {
+                        //if its the first poll, use it as the base
+                        //for setting what their dozing off heart rate will be
+                        restingHeartRate = heartRate;
+                        //lets go with 10% decrease for dozing off
+                        dozingOff = (int)((double)restingHeartRate - ((double)restingHeartRate * .1));
+                        Log.d(TAG, "resting: " + restingHeartRate);
+                        Log.d(TAG, "dozing: " + dozingOff);
+                        isFirst = false;
+                    }
 
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             heartRateView.setText("" + heartRate);
-                            if (heartRate < 80) {
-                                pd.show();
+                            if (heartRate < 73) {
+//                                pd.show();
+
+                                disconnectBand();
                                 if (mp == null || !mp.isPlaying()) {
-//                                    blareAlarm();
+                                    blareAlarm();
                                 }
+                                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                    @Override
+                                    public void onCompletion(MediaPlayer mediaPlayer) {
+                                        speakSleepInstructions();
+                                    }
+                                });
+
 //                                blareAlarm();
                             } else {
-                                pd.hide();
+//                                pd.hide();
                                 if (mp != null && mp.isPlaying()) {
                                     mp.stop();
                                 }
@@ -251,6 +289,32 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
 
     }
 
+    public void speakSleepInstructions() {
+        String sleepInstructions = "Did you fall asleep? I'm re-routing you.";
+        //text to speech
+        t1.speak(sleepInstructions, TextToSpeech.QUEUE_FLUSH, null);
+        //look into a wait until tts ends method before calling reroute
+        reroute();
+    }
+
+    public void reroute() {
+        //this will start the maps
+        //idk what the exact string is so for now
+        //our default is a truck stop
+        sendImpIntMaps("gas station");
+
+    }
+
+    public void sendImpIntMaps(String location) {
+        //location can be gas station, coffee, rest stop, etc
+        Uri anyAddress = Uri.parse("google.navigation:q=" + Uri.encode(location) + "&mode=d");
+        Intent mapI = new Intent(Intent.ACTION_VIEW, anyAddress);
+        mapI.setPackage("com.google.android.apps.maps");
+        if (mapI.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapI);
+        }
+    }
+
     public void blareAlarm() {
         increaseVolume();
         //set up MediaPlayer
@@ -270,9 +334,9 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     private void increaseVolume() {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int original = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-//        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-//                audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-//                AudioManager.FLAG_SHOW_UI);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                AudioManager.FLAG_SHOW_UI);
     }
 
     /**
