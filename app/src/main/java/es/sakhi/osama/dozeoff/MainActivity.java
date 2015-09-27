@@ -2,11 +2,14 @@ package es.sakhi.osama.dozeoff;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -57,6 +60,21 @@ public class MainActivity extends AppCompatActivity implements HeartRateConsentL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        boolean configured = false;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        configured = prefs.getBoolean("configured", false);
+
+        if (!configured) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
+
+        SharedPreferences.Editor editor = prefs.edit();
+
 //        ListenerService.startListener(this);
 
         connected = false;

@@ -3,4 +3,19 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+
+    <string name="heart_rate">83</string>
+    <string name="gas_station_string">GAS STATION</string>
+    <string name="coffee_shop_string">COFFEE SHOP</string>
+    <string name="title_activity_monitor_heart">Heart Monitor</string>
+    <string name="def_Heart_String">HeartString</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="instructions">Instructions</string>
+
+    <string name="autoReroute">Automatically reroute you to nearest gas station or coffee shop.</string>
+    <string name="saveConfigs">Save Configs</string>
+
 </resources>
