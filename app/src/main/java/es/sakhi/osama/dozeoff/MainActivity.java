@@ -1,6 +1,8 @@
 package es.sakhi.osama.dozeoff;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -16,16 +18,16 @@ import java.io.FileNotFoundException;
 
 
 public class MainActivity extends AppCompatActivity {
+    public static final String PREFS_NAME = "MyPrefsFile";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash);
-        String FILENAME = "isFirstTime";
-        try {
-            FileInputStream fis = openFileInput(FILENAME);
-
-        } catch (FileNotFoundException e) {
+        SharedPreferences prefs = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String shopName = prefs.getString("shopMode", "");
+        System.out.println("#### " + shopName);
+        if (shopName.equals("")) {
             Intent intent = new Intent(this, Settings.class);
             startActivity(intent);
         }
@@ -61,8 +63,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openGoogleService(View view) {
-        Intent intent = getIntent();
-        String myShop = intent.getStringExtra(Settings.WHAT_SHOP);
+        //Intent intent = getIntent();
+        //String myShop = intent.getStringExtra(Settings.WHAT_SHOP);
+        SharedPreferences prefs = this.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String myShop = prefs.getString("shopMode", "gas station");
         Uri anyAddress = Uri.parse("google.navigation:q=" + Uri.encode(myShop) + "&mode=d");
         Intent mapI = new Intent(Intent.ACTION_VIEW, anyAddress);
         mapI.setPackage("com.google.android.apps.maps");

@@ -2,6 +2,8 @@ package es.sakhi.osama.dozeoff;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -47,14 +49,24 @@ public class Settings extends AppCompatActivity {
 
     public void sendGasIntent(View view) {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(WHAT_SHOP, "gas station");
+        //intent.putExtra(WHAT_SHOP, "gas station");
+        SharedPreferences prefs = this.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("shopMode", "gas station");
+        editor.commit();
+        System.out.println("****** " + prefs.getString("shopMode", "DID NOT WORK"));
         startActivity(intent);
     }
 
     public void sendCoffeeIntent(View view) {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(WHAT_SHOP, "coffee");
-        System.out.print(WHAT_SHOP);
+        //intent.putExtra(WHAT_SHOP, "coffee");
+        SharedPreferences prefs = this.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("shopMode", "coffee");
+        editor.commit();
+//        prefs.edit().commit();
         startActivity(intent);
     }
 }
