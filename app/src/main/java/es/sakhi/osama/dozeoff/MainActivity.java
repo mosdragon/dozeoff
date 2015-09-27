@@ -35,7 +35,7 @@ import com.microsoft.band.sensors.BandHeartRateEventListener;
 import com.microsoft.band.sensors.HeartRateConsentListener;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements HeartRateConsentListener {
     public static final String PREFS_NAME = "MyPrefsFile";
 
     private static final String TAG = "MainActivity";
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         connected = false;
-        bandConnection = (Button) findViewById(R.id.bandConnection);
+        bandConnection = (Button) findViewById(R.id.button);
         bandConnection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         bandConnection.setText(CONNECT);
 
 
-        heartRateView = (TextView) findViewById(R.id.heartRate);
+        heartRateView = (TextView) findViewById(R.id.heart_rt);
         heartRate = 80;
         heartRateView.setText("" + heartRate);
     }
@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param accepted, whether or not app has consent to get heart rate data
      */
-    @Override
+    //@Override
     public void userAccepted(boolean accepted) {
 //        Get the thing
         if (accepted) {
