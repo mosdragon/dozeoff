@@ -1,39 +1,50 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:layout_height="match_parent"
+
     android:orientation="vertical"
-    tools:context="es.sakhi.osama.dozeoff.SettingsActivity">
+    tools:context="es.sakhi.osama.dozeoff.SettingsActivity"
+    android:background="#00796b">
 
     <TextView android:text="@string/instructions" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:id="@+id/instructions"
+        android:textSize="20dp"
+        android:textColor="#000101" />
 
-    <TextView android:text="\nEver have trouble staying awak on a long, monotonous drive? We're here to help you - simply pair your Microsoft Band with your phone and we'll track your heart beat for you, making sure you don't fall asleep behind the wheel! If your heart beat drops below the dozing off threshold, we'll play an alarm to wake you up and route you to the nearest location of your choice." android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <TextView android:text="\nEver have trouble staying awake on a long, monotonous drive? We&apos;re here to help you - simply pair your Microsoft Band with your phone and we&apos;ll track your heart beat for you, making sure you don&apos;t fall asleep behind the wheel! If your heart beat drops below the dozing off threshold, we&apos;ll play an alarm to wake you up and route you to the nearest location of your choice." android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/"
+        android:textColor="#000101" />
 
     <TextView android:text="\nChoose below which type of location you would prefer to be routed to in the event that you doze off:\n\n" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:textColor="#000101"
+        android:id="@+id/" />
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/gas_station"
         android:text="@string/gas_station_string"
-        android:onClick="sendGasIntent"/>
+        android:onClick="sendGasIntent"
+        android:background="#ffc107"
+        android:layout_marginBottom="10dp"/>
 
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/coffee_shop"
         android:text="@string/coffee_shop_string"
-        android:onClick="sendCoffeeIntent"/>
+        android:onClick="sendCoffeeIntent"
+        android:background="#ffc107"
+        android:layout_marginBottom="10dp" />
 
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/truck_stop"
         android:text="@string/truck_stop_string"
-        android:onClick="sendTruckStopIntent"/>
+        android:onClick="sendTruckStopIntent"
+        android:background="#ffc107"/>
 
 </LinearLayout>
